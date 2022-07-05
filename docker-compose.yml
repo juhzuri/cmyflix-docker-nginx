@@ -1,0 +1,41 @@
+services:
+  cmyflix-docker:
+    image: cmyflix-docker:alpine
+    build: ./cmyflix-docker
+    volumes:
+      - type: volume
+        source: cmyflix-docker_etc
+        target: /etc/cmyflix
+      - type: volume
+        source: cmyflix-docker_output
+        target: /etc/cmyflix/output
+      - type: bind
+        source: ./Movies
+        target: /etc/cmyflix/Movies
+      - type: bind
+        source: ./TV
+        target: /etc/cmyflix/TV
+    environment:
+      TMDBAPI_KEY:
+      CONF_FILE: /etc/cmyflix/cmyflix.cfg
+    command: -v
+  nginx:
+    depends_on:
+      cmyflix-docker:
+        condition: service_completed_successfully
+    image: nginx:alpine
+    ports: 
+      - "8080:80"
+    volumes:
+      - type: volume
+        source: cmyflix-docker_output
+        target: /usr/share/nginx/html
+      - type: bind
+        source: ./Movies
+        target: /usr/share/nginx/html/Movies
+      - type: bind
+        source: ./TV
+        target: /usr/share/nginx/html/TV
+volumes:
+  cmyflix-docker_etc:
+  cmyflix-docker_output:
